@@ -1,6 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from plot import generate_data, plot_swarm
+from plot import plot_swarm
 from pso import GBestPSO, LBestPSO
 
 
@@ -28,8 +27,15 @@ def matyas(x, y=None):
     return 0.26 * (x ** 2 + y ** 2) - 0.48 * x * y
 
 
-swarm = LBestPSO(100, 2, hyparams={'k': 2})
-v, p = swarm.minimize(sphere, 100)
-print(f'v = {v}, p = {p}')
-# plt.plot(swarm.cost_history)
-plot_swarm(swarm.particles_history, fobj=sphere, lowlim=-10, highlim=10)
+if __name__ == '__main__':
+    benchmark = [(sphere, (0, 0)), (beale, (3, 0.5)),
+                 (booth, (1, 3)), (matyas, (0, 0))]
+    hyparams = {'c1': 2.01, 'c2': 2.1, 'k': 10}
+    for fun, gmin in benchmark:
+        print(f'Minimizing benchmark function: {fun.__name__}')
+        swarm = LBestPSO(100, 2, hyparams=hyparams)
+        v, p = swarm.minimize(fun, 50)
+        with np.printoptions(precision=3, suppress=True):  # prettier printing
+            print(f'Found minimum at p:  {p} with value v = {v:.3f}')
+            print(f'True global minimum: {gmin}\n')
+        plot_swarm(swarm, fun, plot_surf=True, plot_proj=False)
