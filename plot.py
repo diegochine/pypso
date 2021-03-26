@@ -25,7 +25,7 @@ def animate_scatters(iteration, data, scatters, iter_text, plane_off):
     return tuple(scatters[k] for k in scatters)
 
 
-def plot_swarm(swarm, fobj, plot_surf=False, plot_proj=True, save=False):
+def plot_swarm(swarm, fobj, plot_surf=False, plot_proj=True, bounds=None, save=False, fullscreen=False):
     """
     Creates the 3D figure and animates it with the input data.
     Args:
@@ -39,17 +39,20 @@ def plot_swarm(swarm, fobj, plot_surf=False, plot_proj=True, save=False):
     gbest_history = swarm.gbest_history
 
     # 3d plot
-    fig = plt.figure(figsize=(15, 15), constrained_layout=True)
+    fig = plt.figure(figsize=(12, 7), constrained_layout=True)
     gs = fig.add_gridspec(4, 4)
     ax = fig.add_subplot(gs[:, 0:3], projection='3d')
-
-    x = np.linspace(-5, 5, 1000)
-    y = np.linspace(-5, 5, 1000)
+    if bounds is None:
+        lb, ub = (-5, -5), (5, 5)
+    else:
+        lb, ub = bounds
+    x = np.linspace(lb[0], ub[0], 1000)
+    y = np.linspace(lb[1], ub[1], 1000)
     xx, yy = np.meshgrid(x, y)
     zz = fobj(xx, yy)
-    xmin = np.min(x)
-    # Plot the surface, projections and initialize scatters
+    # plot surface, projections and initialize scatters
     scatters = dict()
+    xmin, ymin, zmin = np.min(x), np.min(y), np.min(zz)  # needed for correctly plotting projections
     if plot_surf:
         ax.plot_surface(xx, yy, zz, cmap='coolwarm', alpha=0.5, linewidth=0, antialiased=False)
         scatters['3d'] = [
@@ -57,9 +60,9 @@ def plot_swarm(swarm, fobj, plot_surf=False, plot_proj=True, save=False):
                        edgecolors='black')
             for i in range(particles_history[0].shape[0])]
     if plot_proj:
-        ax.contourf(xx, yy, zz, 10, zdir='z', cmap="autumn_r", linestyles="solid", offset=xmin, alpha=0.5)
-        ax.contourf(xx, yy, zz, 10, zdir='y', cmap="autumn_r", linestyles="solid", offset=xmin, alpha=0.5)
-        ax.contourf(xx, yy, zz, 10, zdir='x', cmap="autumn_r", linestyles="solid", offset=xmin, alpha=0.5)
+        ax.contour(xx, yy, zz, 10, zdir='z', cmap="autumn_r", linestyles="solid", offset=0, alpha=0.5)
+        ax.contour(xx, yy, zz, 10, zdir='y', cmap="autumn_r", linestyles="solid", offset=lb[0], alpha=0.5)
+        ax.contour(xx, yy, zz, 10, zdir='x', cmap="autumn_r", linestyles="solid", offset=lb[0], alpha=0.5)
         scatters['xy'] = [
             ax.scatter(particles_history[0][i, 0:1], particles_history[0][i, 1:2], [xmin], edgecolors='black')
             for i in range(particles_history[0].shape[0])]
@@ -105,12 +108,12 @@ def plot_swarm(swarm, fobj, plot_surf=False, plot_proj=True, save=False):
     ax.set_xlabel('iteration')
     ax.set_ylabel('cost')
 
-
     if save:
         Writer = animation.writers['ffmpeg']
         writer = Writer(fps=30, metadata=dict(artist='Diego Chinellato'), bitrate=1800,
                         extra_args=['-vcodec', 'libx264'])
         ani.save('3d-scatted-animated.mp4', writer=writer)
+    if fullscreen:
+        fig.canvas.manager.full_screen_toggle()
 
-    fig.canvas.manager.full_screen_toggle()
     plt.show()

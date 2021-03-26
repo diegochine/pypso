@@ -10,7 +10,7 @@ class AbstractOptimizer(ABC):
 
     DEFAULT_HYPARAMS = {'c1': 2.05, 'c2': 2.05, 'k': 10, 'fully_informed': False}
 
-    def __init__(self, n_particles, dimensions, hyparams, logger_name, log_path):
+    def __init__(self, n_particles, dimensions, hyparams, logger_name, log_path, bounds=None, verbose=False):
         # default hyperparameters
         if hyparams is None or not isinstance(hyparams, dict):
             hyparams = self.DEFAULT_HYPARAMS
@@ -18,9 +18,10 @@ class AbstractOptimizer(ABC):
             hyparams = {**self.DEFAULT_HYPARAMS, **hyparams}
         # particles status
         if hyparams['fully_informed']:
-            self.particles = [FullyInformedParticle(dimensions) for _ in range(n_particles)]
+            self.particles = [FullyInformedParticle(dimensions, bounds) for _ in range(n_particles)]
         else:
-            self.particles = [StandardParticle(dimensions) for _ in range(n_particles)]
+            self.particles = [StandardParticle(dimensions, bounds) for _ in range(n_particles)]
+        self.bounds = bounds
         self.position_matrix = np.array([p.current_position for p in self.particles])
         self.velocity_matrix = np.array([p.velocity for p in self.particles])
         # hyperparameters setup
@@ -37,7 +38,9 @@ class AbstractOptimizer(ABC):
         self.particles_history = []
         self.cost_history = []
         self.gbest_history = []
+
         self.logger = setup_logger(logger_name, log_path)
+        self.verbose = verbose
 
     @abstractmethod
     def minimize(self, f, iters):
@@ -47,8 +50,9 @@ class AbstractOptimizer(ABC):
         self.logger.info(f'ITER {cur_it:3d}/{tot_it:3d}')
         self.logger.info(f'GLOBAL BEST POSITION: {self.gbest_position} '
                          f'WITH VALUE {self.gbest_value:3f}')
-        self.logger.info(f'SWARM STATUS')
-        self.logger.info('\n' + '\n'.join([f'P{i:03d}: {p}' for i, p in enumerate(self.particles)]))
+        if self.verbose:
+            self.logger.info(f'SWARM STATUS')
+            self.logger.info('\n' + '\n'.join([f'P{i:03d}: {p}' for i, p in enumerate(self.particles)]))
 
     def _update_history(self, f):
         self.particles_history.append(

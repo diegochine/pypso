@@ -6,14 +6,16 @@ from pso.optimizer import AbstractOptimizer
 class LBestPSO(AbstractOptimizer):
     """Original pso algorithm (local-best)"""
 
-    def __init__(self, n_particles, dimensions, hyparams=None):
-        super().__init__(n_particles, dimensions, hyparams, 'lbest', 'logs/lbest.log')
+    def __init__(self, n_particles, dimensions, hyparams=None, bounds=None, verbose=False):
+        super().__init__(n_particles, dimensions, hyparams, 'lbest', 'logs/lbest.log',
+                         bounds=bounds, verbose=verbose)
 
     def minimize(self, f, iters=100):
         for iteration in range(iters):
             neighbors = KDTree(self.position_matrix)
-            for i, particle in enumerate(self.particles):
+            for particle in self.particles:
                 particle.step(f)
+            for i, particle in enumerate(self.particles):
                 _, neighbors_idx = neighbors.query(self.position_matrix[i], k=self.k)
                 if self.fully_informed:
                     neighbors_pos = np.array([self.particles[idx].pbest_pos for idx in neighbors_idx])
@@ -28,6 +30,8 @@ class LBestPSO(AbstractOptimizer):
 
             self._update_position_matrix()
             self._update_velocity_matrix()
+
+            assert (self.position_matrix > self.bounds[0]).all() and (self.position_matrix < self.bounds[1]).all()
 
             self._log(iteration, iters)
             self._update_history(f)

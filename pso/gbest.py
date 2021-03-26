@@ -6,8 +6,9 @@ class GBestPSO(AbstractOptimizer):
 
     """Global best PSO"""
 
-    def __init__(self, n_particles, dimensions, hyparams=None):
-        super().__init__(n_particles, dimensions, hyparams, 'gbest', 'logs/gbest.log')
+    def __init__(self, n_particles, dimensions, hyparams=None, bounds=None, verbose=False):
+        super().__init__(n_particles, dimensions, hyparams, 'gbest', 'logs/gbest.log',
+                         bounds=bounds, verbose=verbose)
 
     def __str__(self):
         return '\n'.join([f'{particle}' for particle in self.particles])
