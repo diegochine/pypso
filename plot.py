@@ -36,7 +36,7 @@ def plot_swarm(swarm, fobj, plot_surf=False, plot_proj=True, bounds=None, save=F
 
     particles_history = swarm.particles_history
     cost_history = swarm.cost_history
-    gbest_history = swarm.gbest_history
+    pbest_history = swarm.avg_pbest_history
 
     # 3d plot
     fig = plt.figure(figsize=(12, 7), constrained_layout=True)
@@ -96,15 +96,13 @@ def plot_swarm(swarm, fobj, plot_surf=False, plot_proj=True, bounds=None, save=F
     # 2d plots
     ax = fig.add_subplot(gs[:2, 3])
     ax.plot(cost_history)
-    ax.set_title('Cost history')
+    ax.set_title('Global best value, per iteration')
     ax.set_xlabel('iteration')
     ax.set_ylabel('cost')
 
     ax = fig.add_subplot(gs[2:, 3])
-    xs = [x[0] for x in gbest_history]
-    ys = [x[1] for x in gbest_history]
-    ax.scatter(xs, ys)
-    ax.set_title('gbest')
+    ax.plot(pbest_history)
+    ax.set_title('Average pbest, per iteration')
     ax.set_xlabel('iteration')
     ax.set_ylabel('cost')
 
