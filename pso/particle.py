@@ -16,7 +16,7 @@ class AbstractParticle(ABC):
                                               for i in range(dim)])
 
         self.shape = dim
-        self.velocity = np.zeros(dim)  # normal(0, 1, dim)
+        self.velocity = np.zeros(dim)
         self.alpha = alpha
         self.pbest_pos = self.current_position
         self.pbest_val = np.Inf
@@ -32,7 +32,7 @@ class AbstractParticle(ABC):
         if fval < self.pbest_val:
             # update best found local solution
             self.pbest_val = fval
-            self.pbest_pos = self.current_position
+            self.pbest_pos = self.current_position.copy()
         return self.pbest_val
 
     def _check_bounds(self):

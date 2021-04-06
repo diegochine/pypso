@@ -6,9 +6,22 @@ from pso.particle import StandardParticle, FullyInformedParticle
 
 
 class AbstractOptimizer(ABC):
-    """ Generic base class for all PSO optimizers """
+    """ Generic base class for all PSO optimizers
+        Hyperparameters:
+        c1: float, cognitive weight
+        c2: float, social weight
+        k: int, size of neighboorhood (local-best only)
+        dynamic: bool, if True then k evolves over time (must provide kfun) (local-best only)
+        kfun: function to compute next value of k (local-best only)
+        fully_informed: bool, if True then use fully informed particles
+        """
 
-    DEFAULT_HYPARAMS = {'c1': 2.05, 'c2': 2.05, 'k': 10, 'fully_informed': False}
+    DEFAULT_HYPARAMS = {'c1': 2.05,
+                        'c2': 2.05,
+                        'k': 10,
+                        'dynamic': True,
+                        'kfun': lambda _, k: k + 1,
+                        'fully_informed': False}
 
     def __init__(self, n_particles, dimensions, hyparams, logger_name, log_path, bounds=None, verbose=False):
         # default hyperparameters
@@ -31,6 +44,9 @@ class AbstractOptimizer(ABC):
         self.constriction = 2 / (self.phi - 2 + np.sqrt(self.phi ** 2 - 4 * self.phi))
         self.k = hyparams['k']
         self.fully_informed = hyparams['fully_informed']
+        self.dynamic = hyparams['dynamic']
+        if self.dynamic:
+            self.kfun = hyparams['kfun']
 
         # histories
         self.gbest_value = np.inf
@@ -38,9 +54,13 @@ class AbstractOptimizer(ABC):
         self.particles_history = []
         self.cost_history = []
         self.gbest_history = []
+        self.avg_pbest_history = []
 
         self.logger = setup_logger(logger_name, log_path)
         self.verbose = verbose
+
+    def __str__(self):
+        return '\n'.join([f'{particle}' for particle in self.particles])
 
     @abstractmethod
     def minimize(self, f, iters):
@@ -60,6 +80,7 @@ class AbstractOptimizer(ABC):
                       for p in self.particles]))
         self.cost_history.append(self.gbest_value)
         self.gbest_history.append(self.gbest_position)
+        self.avg_pbest_history.append(np.mean([p.pbest_val for p in self.particles]))
 
     def _update_position_matrix(self):
         self.position_matrix = np.array([p.current_position for p in self.particles])

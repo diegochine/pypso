@@ -10,9 +10,6 @@ class GBestPSO(AbstractOptimizer):
         super().__init__(n_particles, dimensions, hyparams, 'gbest', 'logs/gbest.log',
                          bounds=bounds, verbose=verbose)
 
-    def __str__(self):
-        return '\n'.join([f'{particle}' for particle in self.particles])
-
     def minimize(self, f, iters=100):
         for iteration in range(iters):
             local_bests = np.array([particle.step(f) for particle in self.particles])

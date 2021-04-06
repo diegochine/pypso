@@ -16,7 +16,7 @@ class LBestPSO(AbstractOptimizer):
             for particle in self.particles:
                 particle.step(f)
             for i, particle in enumerate(self.particles):
-                _, neighbors_idx = neighbors.query(self.position_matrix[i], k=self.k)
+                _, neighbors_idx = neighbors.query(self.position_matrix[i], k=self.k, workers=-1)
                 if self.fully_informed:
                     neighbors_pos = np.array([self.particles[idx].pbest_pos for idx in neighbors_idx])
                     particle.update(neighbors_pos, constriction=self.constriction, phi=self.phi)
@@ -27,11 +27,11 @@ class LBestPSO(AbstractOptimizer):
                 if particle.pbest_val < self.gbest_value:
                     self.gbest_position = particle.pbest_pos.copy()
                     self.gbest_value = particle.pbest_val
+            if self.dynamic:
+                self.k = min(self.kfun(iteration, self.k), len(self.particles))
 
             self._update_position_matrix()
             self._update_velocity_matrix()
-
-            assert (self.position_matrix > self.bounds[0]).all() and (self.position_matrix < self.bounds[1]).all()
 
             self._log(iteration, iters)
             self._update_history(f)
