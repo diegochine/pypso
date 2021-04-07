@@ -1,11 +1,18 @@
 import numpy as np
-from sklearn.datasets import load_iris
+from sklearn.datasets import load_digits
 from sklearn.metrics import log_loss, accuracy_score
+from sklearn.model_selection import train_test_split
 from pso import GBestPSO
 
 
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
+
+
+def tanh(x):
+    ex = np.exp(x)
+    emx = np.exp(-x)
+    return (ex - emx) / (ex + emx)
 
 
 def softmax(x):
@@ -30,7 +37,7 @@ def forward(x, weights, biases):
     z = x.copy()
     for w, b in zip(weights[:-1], biases[:-1]):
         z = z.dot(w) + b
-        z = sigmoid(z)
+        z = tanh(z)
     logits = z.dot(weights[-1]) + biases[-1]
     preds = softmax(logits)
     return preds
@@ -48,17 +55,15 @@ def f(pos):
 
 
 if __name__ == '__main__':
-    data = load_iris()
+    data = load_digits()
     X = data.data
-    X_train = X[:125, :]
-    X_test = X[125:, :]
     y = data.target
-    y_train = y[:125]
-    y_test = y[125:]
-    net_structure = [X.shape[1], 16, 8, np.unique(y).size]
-
-    for i in range(10, 21):
-        swarm = GBestPSO(1000, np.prod(net_structure))
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
+    net_structure = [X.shape[1], 32, np.unique(y).size]
+    dimensions = np.prod(net_structure)
+    bounds = (np.full((dimensions, 1), -1), np.full((dimensions, 1), 1))
+    for i in range(50, 101, 10):
+        swarm = GBestPSO(200, dimensions, bounds=bounds, verbose=True)
         c, p = swarm.minimize(f, iters=i)
         ws, bs = unpack(p, net_structure)
         preds = forward(X_test, ws, bs)
