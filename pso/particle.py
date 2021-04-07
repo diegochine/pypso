@@ -13,17 +13,17 @@ class AbstractParticle(ABC):
                 bounds: tuple of numpy arrays, default None
                     boundaries on the search space, see optimizer class
             """
+        self.shape = (dim, 1)
         if bounds is None:
             self.lb = None
             self.ub = None
-            self.current_position = uniform(-1, 1, dim)
+            self.current_position = uniform(-1, 1, self.shape)
         else:
             self.lb, self.ub = bounds
             self.current_position = np.array([uniform(self.lb[i], self.ub[i])
-                                              for i in range(dim)])
+                                              for i in range(dim)]).reshape(self.shape)
 
-        self.shape = dim
-        self.velocity = np.zeros(dim)
+        self.velocity = np.zeros(self.shape)
         self.pbest_pos = self.current_position
         self.pbest_val = np.Inf
 
