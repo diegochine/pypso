@@ -1,6 +1,6 @@
 import numpy as np
-from plot import plot_swarm
-from pso import GBestPSO, LBestPSO
+from utils import plot_swarm
+from pso import LBestPSO
 
 
 def ackley(x, y=None):

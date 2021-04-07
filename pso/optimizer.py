@@ -1,7 +1,7 @@
 import numpy as np
 from abc import ABC, abstractmethod
 
-from logger import setup_logger
+from utils import setup_logger
 from pso.particle import StandardParticle, FullyInformedParticle
 
 
