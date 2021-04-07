@@ -1,37 +1,63 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import mpl_toolkits.mplot3d.axes3d as p3
 import matplotlib.animation as animation
 
 
-def animate_scatters(iteration, data, scatters, iter_text, plane_off):
+def update_frame(iteration, particles_history, scatters, iter_text, plane_off):
     """
-    Update the data held by the scatter plot and therefore animates it.
-    Args:
-        iteration (int): Current iteration of the animation
-        data (list): List of the data positions at each iteration.
-        scatters (list): List of all the scatters (One per element)
+    updates the animation at each frame
+    Parameters:
+        iteration: int
+            Current iteration of the animation
+        particles_history: list
+            list of the particles' positions at each iteration
+        scatters: dict with keys '3d', optional 'xy', 'yz', 'xz'
+            each element is a list of scatter
+        iter_text: text2D
+            text cell for iterations
+        plane_off: float
+            offset, used to correctly plot projections
     Returns:
-        list: List of scatters (One per element) with new coordinates
+        tuple: tuple of scatters (one per element) with new coordinates
     """
-    iter_text.set_text(f'ITERATION {iteration:3d}/{len(data):3d}')
-    for i in range(data[0].shape[0]):
+    iter_text.set_text(f'ITERATION {iteration:3d}/{len(particles_history):3d}')
+    for i in range(particles_history[0].shape[0]):
         if '3d' in scatters:
-            scatters['3d'][i]._offsets3d = (data[iteration][i, 0:1], data[iteration][i, 1:2], data[iteration][i, 2:])
+            scatters['3d'][i]._offsets3d = (particles_history[iteration][i, 0:1],
+                                            particles_history[iteration][i, 1:2],
+                                            particles_history[iteration][i, 2:])
         if 'xy' in scatters:
-            scatters['xy'][i]._offsets3d = (data[iteration][i, 0:1], data[iteration][i, 1:2], plane_off)
-            scatters['yz'][i]._offsets3d = (plane_off, data[iteration][i, 1:2], data[iteration][i, 2:])
-            scatters['xz'][i]._offsets3d = (data[iteration][i, 0:1], plane_off, data[iteration][i, 2:])
+            scatters['xy'][i]._offsets3d = (particles_history[iteration][i, 0:1],
+                                            particles_history[iteration][i, 1:2],
+                                            plane_off)
+            scatters['yz'][i]._offsets3d = (plane_off,
+                                            particles_history[iteration][i, 1:2],
+                                            particles_history[iteration][i, 2:])
+            scatters['xz'][i]._offsets3d = (particles_history[iteration][i, 0:1],
+                                            plane_off,
+                                            particles_history[iteration][i, 2:])
     return tuple(scatters[k] for k in scatters)
 
 
 def plot_swarm(swarm, fobj, plot_surf=False, plot_proj=True, bounds=None, save=False, fullscreen=False):
     """
-    Creates the 3D figure and animates it with the input data.
-    Args:
-        particles_history (list): List of the data positions at each iteration.
-        save (bool): Whether to save the recording of the animation. (Default to False).
-        fobj:
+    plots a 3d animation of the swarm, plus two 2d plots summarizing performances
+    Parameters:
+        swarm: AbstractOptimizer
+            the swarm object with non-empty histories
+        fobj: function
+            function that has been optimized, must accept 2 parameters x and y
+        save: bool
+            whether to save the recording of the animation. (Default to False).
+        plot_surf: bool
+            if True, plots 3d surface of the function
+        plot_proj: bool
+            if True, plots 2d projections (on the 3d axis) of the function on each plane
+        bounds: tuple of np.array, default None
+            bounds on the search space (
+        fullscreen: bool
+            if True, figure is shown fullscreen
+
     """
 
     particles_history = swarm.particles_history
@@ -60,7 +86,7 @@ def plot_swarm(swarm, fobj, plot_surf=False, plot_proj=True, bounds=None, save=F
                        edgecolors='black')
             for i in range(particles_history[0].shape[0])]
     if plot_proj:
-        ax.contour(xx, yy, zz, 10, zdir='z', cmap="autumn_r", linestyles="solid", offset=0, alpha=0.5)
+        ax.contour(xx, yy, zz, 10, zdir='z', cmap="autumn_r", linestyles="solid", offset=lb[0], alpha=0.5)
         ax.contour(xx, yy, zz, 10, zdir='y', cmap="autumn_r", linestyles="solid", offset=lb[0], alpha=0.5)
         ax.contour(xx, yy, zz, 10, zdir='x', cmap="autumn_r", linestyles="solid", offset=lb[0], alpha=0.5)
         scatters['xy'] = [
@@ -89,7 +115,7 @@ def plot_swarm(swarm, fobj, plot_surf=False, plot_proj=True, bounds=None, save=F
     # Provide starting angle for the view.
     ax.view_init(30, 45)
 
-    ani = animation.FuncAnimation(fig, animate_scatters, iterations,
+    ani = animation.FuncAnimation(fig, update_frame, iterations,
                                   fargs=(particles_history, scatters, iter_text, xmin),
                                   interval=500, blit=False, repeat=True)
 

@@ -4,7 +4,10 @@ from pso.optimizer import AbstractOptimizer
 
 class GBestPSO(AbstractOptimizer):
 
-    """Global best PSO"""
+    """
+    Global best PSO: all particles are connected,
+    i.e. the size of the neighborhood is equal to size of the swarm
+    """
 
     def __init__(self, n_particles, dimensions, hyparams=None, bounds=None, verbose=False):
         super().__init__(n_particles, dimensions, hyparams, 'gbest', 'logs/gbest.log',

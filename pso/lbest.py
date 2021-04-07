@@ -4,7 +4,10 @@ from pso.optimizer import AbstractOptimizer
 
 
 class LBestPSO(AbstractOptimizer):
-    """Original pso algorithm (local-best)"""
+    """
+    Local best PSO: each particle is connected to k other particles;
+    i.e, size of the neighborhood is k
+    """
 
     def __init__(self, n_particles, dimensions, hyparams=None, bounds=None, verbose=False):
         super().__init__(n_particles, dimensions, hyparams, 'lbest', 'logs/lbest.log',
