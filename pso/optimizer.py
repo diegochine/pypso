@@ -21,8 +21,8 @@ class AbstractOptimizer(ABC):
         Parameters:
             n_particles: int
                 number of particles in the swarms
-            dimensions: int
-                number of dimensions in the search space
+            dimensions: int or tuple
+                dimensions in the search space
             hyparams: dict with the following (string) keys:
                 c1: float, cognitive weight
                 c2: float, social weight
@@ -52,8 +52,8 @@ class AbstractOptimizer(ABC):
         else:
             self.particles = [StandardParticle(dimensions, bounds) for _ in range(n_particles)]
         self.bounds = bounds
-        self.position_matrix = np.array([p.current_position for p in self.particles])
-        self.velocity_matrix = np.array([p.velocity for p in self.particles])
+        self.position_matrix = np.array([p.current_position for p in self.particles]).reshape(n_particles, -1)
+        self.velocity_matrix = np.array([p.velocity for p in self.particles]).reshape(n_particles, -1)
 
         # hyperparameters setup
         self.c1 = hyparams['c1']
@@ -112,10 +112,10 @@ class AbstractOptimizer(ABC):
         self.avg_pbest_history.append(np.mean([p.pbest_val for p in self.particles]))
 
     def _update_position_matrix(self):
-        self.position_matrix = np.array([p.current_position for p in self.particles])
+        self.position_matrix = np.array([p.current_position for p in self.particles]).reshape(self.position_matrix.shape)
 
     def _update_velocity_matrix(self):
-        self.velocity_matrix = np.array([p.velocity for p in self.particles])
+        self.velocity_matrix = np.array([p.velocity for p in self.particles]).reshape(self.velocity_matrix.shape)
 
     def reset(self):
         """ resets histories and variables from the previous optimization """

@@ -1,6 +1,6 @@
 import numpy as np
 from utils import plot_swarm
-from pso import LBestPSO
+from pso import GBestPSO, LBestPSO
 
 
 def ackley(x, y=None):
@@ -55,35 +55,37 @@ def easom(x, y=None):
 if __name__ == '__main__':
     benchmark = {
         'sphere': (sphere, (0, 0), None),
-        'ackley': (ackley, (0, 0), (np.full(2, -5), np.full(2, 5))),
-        'beale': (beale, (3, 0.5), (np.full(2, -4.5), np.full(2, 4.5))),
-        'booth': (booth, (1, 3), (np.full(2, -10), np.full(2, 10))),
-        'easom': (easom, (np.pi, np.pi), (np.full(2, -100), np.full(2, 100))),
-        'matyas': (matyas, (0, 0), (np.full(2, -10), np.full(2, 10))),
-        'rastrigin': (rastrigin, (0, 0), (np.full(2, -5.12), np.full(2, 5.12)))
+        'ackley': (ackley, (0, 0), (np.full((2, 1), -5), np.full((2, 1), 5))),
+        'beale': (beale, (3, 0.5), (np.full((2, 1), -4.5), np.full((2, 1), 4.5))),
+        'booth': (booth, (1, 3), (np.full((2, 1), -10), np.full((2, 1), 10))),
+        'easom': (easom, (np.pi, np.pi), (np.full((2, 1), -100), np.full((2, 1), 100))),
+        'matyas': (matyas, (0, 0), (np.full((2, 1), -10), np.full((2, 1), 10))),
+        'rastrigin': (rastrigin, (0, 0), (np.full((2, 1), -5.12), np.full((2, 1), 5.12)))
     }
+    n_particles = 200
     hyparams = {'c1': 2.05, 'c2': 2.05,
                 'k': 10, 'dynamic': True, 'kfun': lambda _, k: k + 1,
                 'fully_informed': True}
     visualize = False
     tol = 1e-03
+    max_iter = 100
 
     for fname in benchmark:
         print(f'Minimizing benchmark function: {fname}')
         fobj, true_min_pos, bounds = benchmark[fname]
-        swarm = LBestPSO(100, 2, hyparams=hyparams, bounds=bounds, verbose=True)
-        found_min_val, found_min_pos = swarm.minimize(fobj, 100)
+        swarm = GBestPSO(n_particles, 2, hyparams=hyparams, bounds=bounds, verbose=True)
+        found_min_val, found_min_pos = swarm.minimize(fobj, max_iter)
         with np.printoptions(precision=3, suppress=True):  # prettier printing
-            true_min_pos = np.array(true_min_pos, dtype=np.float)
-            true_min_val = fobj(true_min_pos)
+            true_min_pos = np.array(true_min_pos, dtype=np.float64).reshape(2, 1)
+            true_min_val = fobj(true_min_pos)[0]
             dist = np.sum((found_min_pos - true_min_pos) ** 2)
-            print(f'Found minimum: {found_min_pos} with value {found_min_val:.3f}')
-            print(f'True minimum : {true_min_pos} with value {true_min_val:.3f}')
+            print(f'Found minimum: {found_min_pos.reshape(-1)} with value {found_min_val:.3f}')
+            print(f'True minimum : {true_min_pos.reshape(-1)} with value {true_min_val:.3f}')
             print(f'Distance (euclidean): {dist:.3f}')
             convergence = np.argwhere(np.abs(np.array(swarm.cost_history) - true_min_val) < tol)
             if np.any(convergence):
                 convergence = convergence[0, 0]
-                print(f'Convergence speed (iterations before dist < {tol}): {convergence:3d}')
+                print(f'Convergence speed (iterations before dist < {tol}): {convergence:3d}/{max_iter:3d}')
             else:
                 print(f"Did not converge with tolerance {tol}")
             print()

@@ -8,14 +8,14 @@ class AbstractParticle(ABC):
     def __init__(self, dim, bounds=None):
         """ initializes the particle
             Parameters:
-                dim: int
-                    number of dimensions of the search space
+                dim: int or tuple
+                    dimensions of the search space
                 bounds: tuple of numpy arrays, default None
                     boundaries on the search space, see optimizer class
             """
-        if isinstance(dim, int):
+        if isinstance(dim, int):  # vector space
             self.shape = (dim, 1)
-        elif isinstance(dim, tuple):
+        elif isinstance(dim, tuple):  # matrix space
             self.shape = dim
         else:
             raise TypeError('dim must be either int or tuple')
@@ -25,15 +25,13 @@ class AbstractParticle(ABC):
             self.current_position = uniform(-1, 1, self.shape)
         else:
             self.lb, self.ub = bounds
-            if self.shape[1] == 1:
-                # vector space
+            if self.shape[1] == 1:  # vector space
                 self.current_position = np.array([uniform(self.lb[i], self.ub[i])
-                                                  for i in range(dim[0])]).reshape(self.shape)
-            else:
-                # matrix space
+                                                  for i in range(self.shape[0])]).reshape(self.shape)
+            else:  # matrix space
                 self.current_position = np.array([[uniform(self.lb[i], self.ub[i])
-                                                   for i in range(dim[1])]
-                                                  for _ in range(dim[0])])
+                                                   for i in range(self.shape[1])]
+                                                  for _ in range(self.shape[0])])
 
         self.velocity = np.zeros(self.shape)
         self.pbest_pos = self.current_position
@@ -47,6 +45,8 @@ class AbstractParticle(ABC):
         evaluate fitness function (eventually updating local best)
         """
         fval = f(self.current_position)
+        if isinstance(fval, np.ndarray):
+            fval = fval[0]
         if fval < self.pbest_val:
             # update best found local solution
             self.pbest_val = fval
