@@ -103,7 +103,6 @@ def plot_swarm(swarm, fobj, plot_surf=False, plot_proj=True, bounds=None, save=F
     iterations = len(particles_history)
     iter_text = ax.text2D(0.05, 0.9, f"ITERATION {0:3d}/{iterations:3d}", transform=ax.transAxes)
 
-    # Setting the axes properties
     # ax.set_xlim3d([lowlim, highlim])
     ax.set_xlabel('X')
     # ax.set_ylim3d([lowlim, highlim])
@@ -112,7 +111,7 @@ def plot_swarm(swarm, fobj, plot_surf=False, plot_proj=True, bounds=None, save=F
     ax.set_zlabel('Z')
     ax.set_title(f'PSO, {fobj.__name__} function')
 
-    # Provide starting angle for the view.
+    # starting angle for the view
     ax.view_init(30, 45)
 
     ani = animation.FuncAnimation(fig, update_frame, iterations,
