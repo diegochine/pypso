@@ -1,8 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.datasets import load_digits
-from sklearn.metrics import log_loss, accuracy_score
-from sklearn.model_selection import train_test_split
+# from sklearn.datasets import load_digits
 from pso import GBestPSO
 
 
@@ -44,32 +42,39 @@ def forward(x, weights, biases):
     return preds
 
 
-def loss(y_true, y_pred):
-    pass
+def log_loss(y_true, y_pred):
+    # compute loss per each class
+    per_class_loss = np.concatenate([-np.log(y_pred[y_true == c, c]) for c in np.unique(y_true)])
+    loss = np.mean(per_class_loss)
+    return loss
 
 
 def f(pos):
     """ Overhead function to train the network using the swarm"""
     ws, bs = unpack(pos, net_structure)
     y_pred = forward(X_train, ws, bs)
+    y_pred = np.clip(y_pred, 1e-12, 1 - 1e-12)
+    y_pred = y_pred / y_pred.sum(axis=0)
     return log_loss(y_train, y_pred)
 
 
 if __name__ == '__main__':
-    data = load_digits()
-    X = data.data
-    y = data.target
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
+    X = np.load('digits_data.npy')
+    y = np.load('digits_labels.npy')
+    X_train = X[:1300, :]
+    X_test = X[1300:, :]
+    y_train = y[:1300]
+    y_test = y[1300:]
     net_structure = [X.shape[1], 32, np.unique(y).size]
     dimensions = int(np.prod(net_structure))
     bounds = (np.full((dimensions, 1), -1), np.full((dimensions, 1), 1))
-    swarm = GBestPSO(200, dimensions, bounds=bounds, verbose=True)
-    c, p = swarm.minimize(f, iters=100)
-    ws, bs = unpack(p, net_structure)
+    swarm = GBestPSO(150, dimensions, bounds=bounds, verbose=True)
+    cost, solution = swarm.minimize(f, iters=100)
+    ws, bs = unpack(solution, net_structure)
     preds = forward(X_test, ws, bs)
     y_pred = np.array(list(map(lambda x: np.argmax(x), preds)))
-    acc = accuracy_score(y_test, y_pred)
-    print(f'acc: {acc}')
+    accuracy = (y_test == y_pred).sum() / y_test.size
+    print(f'Accuracy (whole testing set): {accuracy}')
 
     # fig, axes = plt.subplots(2, 2)
     fig = plt.figure(figsize=(12, 7), constrained_layout=True)
@@ -81,7 +86,7 @@ if __name__ == '__main__':
         ax.set_title(f'True label: {y_test[img_idx]}, predicted: {y_pred[img_idx]}')
     ax = fig.add_subplot(gs[1, :])
     ax.plot(swarm.cost_history)
-    ax.set_title(f'Loss function, final accuracy: {acc * 100:.2f}%')
+    ax.set_title(f'Loss function, final accuracy: {accuracy * 100:.2f}%')
     ax.set_xlabel('#iterations')
     ax.set_ylabel('Loss')
     ax.grid()
