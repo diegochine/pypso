@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-# from sklearn.datasets import load_digits
 from pso import GBestPSO
 
 
@@ -61,22 +60,22 @@ def f(pos):
 if __name__ == '__main__':
     X = np.load('digits_data.npy')
     y = np.load('digits_labels.npy')
+    X = X / np.max(X)
     X_train = X[:1300, :]
     X_test = X[1300:, :]
     y_train = y[:1300]
     y_test = y[1300:]
     net_structure = [X.shape[1], 32, np.unique(y).size]
     dimensions = int(np.prod(net_structure))
-    bounds = (np.full((dimensions, 1), -1), np.full((dimensions, 1), 1))
+    bounds = (np.full((dimensions, 1), -0.5), np.full((dimensions, 1), 0.5))
     swarm = GBestPSO(150, dimensions, bounds=bounds, verbose=True)
     cost, solution = swarm.minimize(f, iters=100)
     ws, bs = unpack(solution, net_structure)
     preds = forward(X_test, ws, bs)
     y_pred = np.array(list(map(lambda x: np.argmax(x), preds)))
     accuracy = (y_test == y_pred).sum() / y_test.size
-    print(f'Accuracy (whole testing set): {accuracy}')
+    print(f'Accuracy (testing set): {accuracy * 100:.2f}%')
 
-    # fig, axes = plt.subplots(2, 2)
     fig = plt.figure(figsize=(12, 7), constrained_layout=True)
     gs = fig.add_gridspec(2, 3)
     choice = np.random.choice(X_test.shape[0], 3, replace=False)
