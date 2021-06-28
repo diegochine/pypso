@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from pso import GBestPSO
+from pso.gbest import GBestPSO
 
 
 def sigmoid(x):
@@ -58,8 +58,8 @@ def f(pos):
 
 
 if __name__ == '__main__':
-    X = np.load('digits_data.npy')
-    y = np.load('digits_labels.npy')
+    X = np.load('data/digits_data.npy')
+    y = np.load('data/digits_labels.npy')
     X = X / np.max(X)
     X_train = X[:1300, :]
     X_test = X[1300:, :]
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     dimensions = int(np.prod(net_structure))
     bounds = (np.full((dimensions, 1), -0.5), np.full((dimensions, 1), 0.5))
     swarm = GBestPSO(150, dimensions, bounds=bounds, verbose=True)
-    cost, solution = swarm.minimize(f, iters=100)
+    cost, solution = swarm.minimize(f, iters=50)
     ws, bs = unpack(solution, net_structure)
     preds = forward(X_test, ws, bs)
     y_pred = np.array(list(map(lambda x: np.argmax(x), preds)))

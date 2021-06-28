@@ -1,6 +1,7 @@
 import numpy as np
-from utils import plot_swarm
-from pso import GBestPSO, LBestPSO
+from pso.utils import plot_swarm
+from pso.gbest import GBestPSO
+from pso.lbest import LBestPSO
 
 
 def ackley(x, y=None):
@@ -56,19 +57,19 @@ if __name__ == '__main__':
     benchmark = {
         'sphere': (sphere, (0, 0), None),
         'ackley': (ackley, (0, 0), (np.full((2, 1), -5), np.full((2, 1), 5))),
-        'beale': (beale, (3, 0.5), (np.full((2, 1), -4.5), np.full((2, 1), 4.5))),
         'booth': (booth, (1, 3), (np.full((2, 1), -10), np.full((2, 1), 10))),
         'easom': (easom, (np.pi, np.pi), (np.full((2, 1), -100), np.full((2, 1), 100))),
         'matyas': (matyas, (0, 0), (np.full((2, 1), -10), np.full((2, 1), 10))),
-        'rastrigin': (rastrigin, (0, 0), (np.full((2, 1), -5.12), np.full((2, 1), 5.12)))
+        'rastrigin': (rastrigin, (0, 0), (np.full((2, 1), -5.12), np.full((2, 1), 5.12))),
+        'beale': (beale, (3, 0.5), (np.full((2, 1), -4.5), np.full((2, 1), 4.5)))
     }
     n_particles = 200
     hyparams = {'c1': 2.05, 'c2': 2.05,
                 'k': 10, 'dynamic': True, 'kfun': lambda _, k: k + 1,
                 'fully_informed': True}
-    visualize = False
+    visualize = True
     tol = 1e-03
-    max_iter = 100
+    max_iter = 50
 
     for fname in benchmark:
         print(f'Minimizing benchmark function: {fname}')

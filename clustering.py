@@ -1,7 +1,9 @@
+import time
+
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from pso import GBestPSO
+from pso.gbest import GBestPSO
 
 
 def assign_clusters(X, clusters):
@@ -50,6 +52,8 @@ def animate(cluster_info, points, clusters_plots, centroids_plots, iter_text):
         clusters_plots[k].set_data(new_assignment[:, 0], new_assignment[:, 1])
         centroids_plots[k].set_data(centroids[k, 0], centroids[k, 1])
     iter_text.set_text(f'ITERATION: {iteration:d}')
+    if iteration == 0:
+        time.sleep(1.5)
 
 
 def animate_clusters(swarm, points):
@@ -92,6 +96,6 @@ if __name__ == '__main__':
     hyparams = {'c1': 2.1, 'c2': 2.1}
     n_clusters = 5
     swarm = GBestPSO(100, (n_clusters, 2), bounds=bounds, hyparams=hyparams, verbose=True)
-    c, p = swarm.minimize(f, iters=20)
+    c, p = swarm.minimize(f, iters=10)
     print(f'final cost: {c}')
     ani = animate_clusters(swarm, X)
