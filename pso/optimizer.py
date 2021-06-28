@@ -1,7 +1,7 @@
 import numpy as np
 from abc import ABC, abstractmethod
 
-from utils import setup_logger
+from pso.utils.logger import setup_logger
 from pso.particle import StandardParticle, FullyInformedParticle
 
 
@@ -15,7 +15,8 @@ class AbstractOptimizer(ABC):
                         'kfun': lambda _, k: k + 1,
                         'fully_informed': False}
 
-    def __init__(self, n_particles, dimensions, hyparams, logger_name, log_path, bounds=None, verbose=False):
+    def __init__(self, n_particles, dimensions, hyparams, logger_name, log_path,
+                 bounds=None, limit_vmax=True, verbose=False):
         """
         Initialize the optimizer
         Parameters:
@@ -37,20 +38,30 @@ class AbstractOptimizer(ABC):
             bounds: tuple of numpy arrays, default None
                 search space bounds, tuple of size 2 where first array is lower bound
                 and second array is upper bound.
+            limit_vmax: bool, default True
+                if True, limit maximum velocity of particles to Xmax (dynamic range of the variables) in each dimension
             verbose: bool, default None
                 log verbosity
         """
+        print('Initializing swarm')
         # default hyparameters
         if hyparams is None or not isinstance(hyparams, dict):
             hyparams = self.DEFAULT_HYPARAMS
         else:
             hyparams = {**self.DEFAULT_HYPARAMS, **hyparams}
 
+        if bounds is not None and limit_vmax:
+            self.vmax = np.array([np.abs(bmax - bmin) for bmin, bmax in zip(bounds[0], bounds[1])])
+        else:
+            self.vmax = np.array([[1e6] for _ in range(dimensions)])
+
         # particles status
         if hyparams['fully_informed']:
-            self.particles = [FullyInformedParticle(dimensions, bounds) for _ in range(n_particles)]
+            self.particles = [FullyInformedParticle(dimensions, bounds=bounds, vmax=self.vmax)
+                              for _ in range(n_particles)]
         else:
-            self.particles = [StandardParticle(dimensions, bounds) for _ in range(n_particles)]
+            self.particles = [StandardParticle(dimensions, bounds=bounds, vmax=self.vmax)
+                              for _ in range(n_particles)]
         self.bounds = bounds
         self.position_matrix = np.array([p.current_position for p in self.particles]).reshape(n_particles, -1)
         self.velocity_matrix = np.array([p.velocity for p in self.particles]).reshape(n_particles, -1)
@@ -101,6 +112,8 @@ class AbstractOptimizer(ABC):
         if self.verbose:
             self.logger.info(f'SWARM STATUS')
             self.logger.info('\n' + '\n'.join([f'P{i:03d}: {p}' for i, p in enumerate(self.particles)]))
+        if cur_it % 10 == 0:
+            print(f'Iteration {cur_it:>3}/{tot_it:>3}, global best: {self.gbest_value:.3f}')
 
     def _update_history(self, f):
         """ update history after each iteration """

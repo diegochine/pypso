@@ -9,9 +9,9 @@ class GBestPSO(AbstractOptimizer):
     i.e. the size of the neighborhood is equal to size of the swarm
     """
 
-    def __init__(self, n_particles, dimensions, hyparams=None, bounds=None, verbose=False):
+    def __init__(self, n_particles, dimensions, hyparams=None, bounds=None, limit_vmax=True, verbose=False):
         super().__init__(n_particles, dimensions, hyparams, 'gbest', 'logs/gbest.log',
-                         bounds=bounds, verbose=verbose)
+                         bounds=bounds, limit_vmax=limit_vmax, verbose=verbose)
 
     def minimize(self, f, iters=100):
         for iteration in range(iters):
