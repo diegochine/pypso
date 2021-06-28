@@ -116,7 +116,7 @@ def plot_swarm(swarm, fobj, plot_surf=False, plot_proj=True, bounds=None, save=F
 
     ani = animation.FuncAnimation(fig, update_frame, iterations,
                                   fargs=(particles_history, scatters, iter_text, xmin),
-                                  interval=500, blit=False, repeat=True)
+                                  interval=1000, blit=False, repeat=True)
 
     # 2d plots
     ax = fig.add_subplot(gs[:2, 3])

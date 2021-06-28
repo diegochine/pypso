@@ -21,5 +21,5 @@ def setup_logger(name, file, level='info'):
     return logger
 
 
-if not os.path.exists('../logs'):
-    os.mkdir('../logs')
+if not os.path.exists('../../logs'):
+    os.mkdir('../../logs')
